@@ -3,10 +3,10 @@ import sqlite3
 database = "gifts.db"
 
 def connect_db():
-    """
-    T#he function `connect_db` establishes a connection to a SQLite database and yields the connection
-    #for use in a context manager, closing the connection when done.
-    """
+       
+    # The function `connect_db` establishes a connection to a SQLite database and yields the connection
+    # for use in a context manager, closing the connection when done.
+    
     connect = sqlite3.connect(database)
     
     try:                # Используем генератор т.к будет переход в FASTAPI
