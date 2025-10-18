@@ -1,6 +1,13 @@
-import requests
+import requests, time
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
+
+# Убери относительный импорт и добавь в начало файла:
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from DB.create_database import start_database, create_database
 
 
 HEADERS = {
@@ -42,7 +49,36 @@ def parse_fragment(
     model = tags[0].text.strip()
     backdrop = tags[1].text.strip()
     symbol = tags[2].text.strip()
-
-
+    
+    gift_data = {
+        "id": gift_id,
+        "name": name_gift_id,
+        "model": model,
+        "backdrop": backdrop,
+        "symbol": symbol,
+        "sale_price": sale_price
+    }
+    
+    try:
+        create_database()
+        start_database(
+        id = gift_id,
+        name = name_gift_id, 
+        model = model,
+        backdrop = backdrop,
+        symbol = symbol,
+        sale_price = sale_price
+        )
+    except Exception as e:
+        print(f"Ошибка при сохранении gift {gift_id} в БД: {e}")
+        return None
+    
 if __name__ == "__main__":
-    None
+    # Для тестирования можно задать значение по умолчанию
+    for num in range(1, 10):
+        data = parse_fragment(num, "lootbag")  # Передаем оба параметра
+        if data:
+            for key, value in data.items():
+                print(f"{key}: {value}")
+            print("-" * 40)
+        time.sleep(1)
