@@ -9,7 +9,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from .config import Config
-from app.bot.handlers import gifts
+
 
 # Создаем экземпляр конфига
 config = Config()
@@ -21,6 +21,9 @@ bot = Bot(
 )
 
 dp = Dispatcher()
+
+from app.bot.handlers import gifts
+
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
