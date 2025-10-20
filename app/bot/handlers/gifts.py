@@ -6,6 +6,8 @@ from aiogram.types import Message
 from app.bot.config import Config
 
 user_router = Router()
+admin_router = Router()
+
 config = Config()
 
 async def get_gifts() -> List[dict]:
@@ -16,7 +18,7 @@ async def get_gifts() -> List[dict]:
             return await resp.json()
         
 
-@user_router.message(Command("gift_all"))                         #Обработчик команды /gift_all))
+@user_router.message(Command("gift_all"))                        
 async def show_gift_handler(message: Message):
     await message.answer("🔄 Загружаю гифты...")
     try:

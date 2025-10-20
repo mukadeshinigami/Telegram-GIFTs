@@ -274,41 +274,41 @@ async def start_batch_parsing(task: ParseTask, background_tasks: BackgroundTasks
         }
     }
 
-@app.get("/tasks/{task_id}")
-async def get_task_status(task_id: str):
-    """
-    Получить статус и прогресс фоновой задачи парсинга
+# @app.get("/tasks/{task_id}")
+# async def get_task_status(task_id: str):
+#     """
+#     Получить статус и прогресс фоновой задачи парсинга
     
-    - **task_id**: Идентификатор задачи полученный при запуске парсинга
-    """
-    if task_id not in active_tasks:
-        raise HTTPException(
-            status_code=404, 
-            detail=f"Задача с ID {task_id} не найдена"
-        )
+#     - **task_id**: Идентификатор задачи полученный при запуске парсинга
+#     """
+#     if task_id not in active_tasks:
+#         raise HTTPException(
+#             status_code=404, 
+#             detail=f"Задача с ID {task_id} не найдена"
+#         )
     
-    return active_tasks[task_id]
+#     return active_tasks[task_id]
 
-@app.get("/tasks/")
-async def get_all_tasks():
-    """
-    Получить список всех активных и завершенных задач
-    """
-    return {
-        "active_tasks": {
-            task_id: info for task_id, info in active_tasks.items() 
-            if info.get("status") != "completed"
-        },
-        "completed_tasks": {
-            task_id: info for task_id, info in active_tasks.items() 
-            if info.get("status") == "completed"
-        },
-        "total_tasks": len(active_tasks)
-    }
+# @app.get("/tasks/")
+# async def get_all_tasks():
+#     """
+#     Получить список всех активных и завершенных задач
+#     """
+#     return {
+#         "active_tasks": {
+#             task_id: info for task_id, info in active_tasks.items() 
+#             if info.get("status") != "completed"
+#         },
+#         "completed_tasks": {
+#             task_id: info for task_id, info in active_tasks.items() 
+#             if info.get("status") == "completed"
+#         },
+#         "total_tasks": len(active_tasks)
+#     }
 
 async def get_gifts():
     """
-    123
+    Получить список гифтов через API (возвращает JSON).
     """
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{config.API_URL}/gifts/" ) as response:

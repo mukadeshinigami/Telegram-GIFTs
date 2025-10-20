@@ -23,54 +23,11 @@ bot = Bot(
 dp = Dispatcher()
 
 from app.bot.handlers import gifts
-
-
-@dp.message(CommandStart())
-async def command_start_handler(message: Message) -> None:
-    await message.answer(f"Привет, {html.bold(message.from_user.full_name)}! 👋")
+from app.bot.handlers import start
     
-@dp.message(Command("help"))
-async def help_hendler(message: Message):
-    await message.answer("Помощь по командам...")
-    
-@dp.message(Command("test"))
-async def commad(message: Message) -> None:
-    
-    builder = InlineKeyboardBuilder()
-    
-    builder.add(
-        InlineKeyboardButton(
-            
-        text="🎭 Показать NFT",
-        callback_data="show_nfts"
-    ))
-    
-    builder.add(
-        InlineKeyboardButton(
-            
-        text="📊 Статистика", 
-        callback_data="show_stats"
-    ))
-    
-    await message.answer(
-        "Выбери действи:",
-        reply_markup=builder.as_markup()
-    )
-    
-@dp.callback_query(F.data == "show_nfts")               #Фильтр по "show_nfts
-async def show_nft_handlers(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.answer("🔄 Загружаю NFT...")
-    
-@dp.callback_query(F.data == "show_stats") #
-async def show_stats_handler(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.answer("🔄")
-    
+dp.include_router(start.user_router)
 
 dp.include_router(gifts.user_router)
-
-    
 
     
 async def main() -> None:
