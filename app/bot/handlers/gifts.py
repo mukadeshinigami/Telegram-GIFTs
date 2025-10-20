@@ -1,11 +1,11 @@
 from aiogram.filters import Command
 import aiohttp
 from typing import List
-
-from app.bot.main import dp
+from aiogram import Router
 from aiogram.types import Message
 from app.bot.config import Config
 
+user_router = Router()
 config = Config()
 
 async def get_gifts() -> List[dict]:
@@ -16,7 +16,7 @@ async def get_gifts() -> List[dict]:
             return await resp.json()
         
 
-@dp.message(Command("gift_all"))                            #Обработчик команды /gift_all))
+@user_router.message(Command("gift_all"))                         #Обработчик команды /gift_all))
 async def show_gift_handler(message: Message):
     await message.answer("🔄 Загружаю гифты...")
     try:

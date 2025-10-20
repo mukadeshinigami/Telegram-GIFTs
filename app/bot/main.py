@@ -11,7 +11,7 @@ from aiogram.types import Message, CallbackQuery
 from .config import Config
 
 
-# Создаем экземпляр конфига
+
 config = Config()
 
 # Инициализируем бота с правильным токеном
@@ -68,9 +68,8 @@ async def show_stats_handler(callback: CallbackQuery):
     await callback.message.answer("🔄")
     
 
-@dp.message(Command("gift_all"))                            #Перенаправление команды в handlers/gifts.py
-async def gift_handler(message: Message):
-    await gifts.show_gift_handler(message)
+dp.include_router(gifts.user_router)
+
     
 
     
