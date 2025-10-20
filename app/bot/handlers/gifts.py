@@ -14,8 +14,9 @@ async def get_gifts() -> List[dict]:
         async with session.get(f"{config.API_URL}/gifts/") as resp:
             resp.raise_for_status()
             return await resp.json()
+        
 
-@dp.message(Command("gift"))
+@dp.message(Command("gift_all"))                            #Обработчик команды /gift_all))
 async def show_gift_handler(message: Message):
     await message.answer("🔄 Загружаю гифты...")
     try:

@@ -68,12 +68,14 @@ async def show_stats_handler(callback: CallbackQuery):
     await callback.message.answer("🔄")
     
 
-@dp.message(Command("gift"))
+@dp.message(Command("gift_all"))                            #Перенаправление команды в handlers/gifts.py
 async def gift_handler(message: Message):
     await gifts.show_gift_handler(message)
     
+
+    
 async def main() -> None:
-    # Запускаем бота
+    """Strart bot."""
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
