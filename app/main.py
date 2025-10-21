@@ -11,6 +11,7 @@ from parser.fragment import parse_fragment
 from DB.create_database import create_database, connect_db
 from bot.config import Config
 
+
 config = Config()
 
 app = FastAPI(
@@ -18,6 +19,7 @@ app = FastAPI(
     description="API для парсинга и управления гифтами с fragment.com",
     version="1.0.0"
 )
+
 
 # Модели Pydantic для валидации данных
 class GiftBase(BaseModel):
@@ -34,6 +36,7 @@ class GiftCreate(BaseModel):
     gift_id: int = Field(gt=0, description="ID гифта для парсинга (должен быть больше 0)")
     user_selection_gifts: str = Field(description="Тип гифта (например: lootbag)")
 
+
 class ParseTask(BaseModel):
     """Модель для запуска фоновой задачи парсинга"""
     start_id: int = Field(gt=0, description="Начальный ID диапазона для парсинга")
@@ -43,6 +46,7 @@ class ParseTask(BaseModel):
 
 # Глобальные переменные для управления задачами
 active_tasks = {}
+
 
 @app.get("/")
 async def root():
@@ -58,6 +62,7 @@ async def root():
             "batch_parse": "/parse/batch/"
         }
     }
+
 
 @app.get("/health")
 async def health_check():
@@ -75,6 +80,7 @@ async def health_check():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка подключения к БД: {e}")
+
 
 @app.get("/gifts/", response_model=List[GiftBase])
 async def get_all_gifts(
@@ -101,8 +107,9 @@ async def get_all_gifts(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при получении данных из БД: {e}")
 
+
 @app.get("/gifts/{gift_id}", response_model=GiftBase) #Только первый в таблице
-async def get_gift_by_id(gift_id: int):
+async def get_gift_by_id(name: Optional[str] = None):
     """
     Получить информацию о конкретном гифте по ID
     
@@ -110,11 +117,11 @@ async def get_gift_by_id(gift_id: int):
     """
     try:
         with connect_db() as session:
-            gift = session.query(Gift).filter(Gift.id == gift_id).first()
+            gift = session.query(Gift).filter(Gift.name == name).first()
             if not gift:
                 raise HTTPException(
                     status_code=404, 
-                    detail=f"Гифт с ID {gift_id} не найден в базе данных"
+                    detail=f"Гифт с ID {name} не найден в базе данных"
                 )
             
             return GiftBase(
@@ -125,8 +132,7 @@ async def get_gift_by_id(gift_id: int):
                 symbol=gift.symbol,
                 sale_price=gift.sale_price
             )
-                       
-           
+                                
     except HTTPException:
         raise
     except Exception as e:
@@ -134,6 +140,7 @@ async def get_gift_by_id(gift_id: int):
             status_code=500, 
             detail=f"Ошибка при поиске гифта в БД: {e}"
         )
+
 
 @app.post("/parse/", response_model=GiftBase)
 async def parse_single_gift(gift_data: GiftCreate):
