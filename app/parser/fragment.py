@@ -42,8 +42,7 @@ def parse_fragment(
     
     tags = soup.find_all("a", class_="table-cell-value-link")
     if len(tags) < 3 or not all(tags[i].text.strip() for i in range(3)):
-        print(f"Пропускаем gift {gift_id} — недостаточно данных")
-        print("-" * 40)
+        print(f"Пропускаем Gift #{gift_id} — недостаточно данных")
         return None
     
     model = tags[0].text.strip()
@@ -70,7 +69,7 @@ def parse_fragment(
         sale_price = sale_price
         )
     except Exception as e:
-        print(f"Ошибка при сохранении gift {gift_id} в БД: {e}")
+        print(f"Ошибка при сохранении Gift #{gift_id} в БД: {e}")
         return None
     
 if __name__ == "__main__":

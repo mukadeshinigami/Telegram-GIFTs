@@ -1,13 +1,9 @@
 import asyncio, logging
 from os import getenv
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.client.default import DefaultBotProperties
 from aiogram import Bot, Dispatcher, html, F
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, CallbackQuery
 from .config import Config
 
 
