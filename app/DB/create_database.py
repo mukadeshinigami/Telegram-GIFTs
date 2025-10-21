@@ -1,61 +1,64 @@
-import sqlite3 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
+from contextlib import contextmanager
+from datetime import datetime
+from DB.models import Base, Gift  # Импортируем модель из вашего файла model.py
 
-database = "gifts.db"
+DATABASE_URL = "sqlite:///gifts.db"   # URL вашей базы данных SQLite
+engine = create_engine(DATABASE_URL)
+SessionFactory = sessionmaker(bind=engine)
+Session = scoped_session(SessionFactory)
 
+@contextmanager
 def connect_db():
        
-    # The function `connect_db` establishes a connection to a SQLite database and yields the connection
-    # for use in a context manager, closing the connection when done.
+    # Context manager for database session.
     
-    connect = sqlite3.connect(database)
-    
-    try:                # Используем генератор т.к будет переход в FASTAPI
-        yield connect   #
-    finally:            #
-        connect.close()
+    session = Session()
+    try:
+        yield session
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()
     
 def create_database(): 
+  
+    # Create the database and tables.
     
-    # The function `create_database` creates a table named `gifts` in a database if it does not already exist.
-   
-    for connection in connect_db():
-        
-        cursor = connection.cursor()
-        
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS gifts (
-            num INTEGER PRIMARY KEY AUTOINCREMENT,
-            id INTEGER,
-            name TEXT,
-            model TEXT,
-            backdrop TEXT,
-            symbol TEXT,
-            sale_price TEXT
-        )
-    """)
-        connection.commit()
+    Base.metadata.create_all(engine)
     
 def start_database(
     id, name, model, backdrop, symbol, sale_price
 ):
     
-    for connection in connect_db():
+    with connect_db() as session:
         
-        cursor = connection.cursor()
+        exiting_gift = session.query(Gift).filter_by(name=name).first()
+        if exiting_gift:
+            print(f"Gift с именем {name} уже существует.")
+            return 
         
-        cursor.execute(
-        """
-        INSERT INTO gifts (id, name, model, backdrop, symbol, sale_price)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """,
-        (id, name, model, backdrop, symbol, sale_price)
-        ) 
-        connection.commit()
-
+        new_gift = Gift(
+            id=id,
+            name=name,
+            model=model,
+            backdrop=backdrop,
+            symbol=symbol,
+            sale_price=sale_price,
+            rarity_score=None,  
+            estimated_price=None,
+            date_added=datetime.now()  
+        )
+        session.add(new_gift)
+    print(f"Добавлен новый Gift: {name}")
 if __name__ == "__main__":
+    
     create_database()       # Тестовый запуск
     start_database(
-        id=1,
+        id=999,
         name="PlushPepe #1",
         model="Model1",
         backdrop="Blue",

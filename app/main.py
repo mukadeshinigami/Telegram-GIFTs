@@ -1,12 +1,15 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 from typing import Optional, List
-import asyncio, uvicorn
+import asyncio, uvicorn, aiohttp
 import time
 
 # Импортируем наши функции
 from parser.fragment import parse_fragment
 from DB.create_database import create_database, connect_db
+from bot.config import Config
+
+config = Config()
 
 app = FastAPI(
     title="Telegram Gifts Parser API",
@@ -39,12 +42,6 @@ class ParseTask(BaseModel):
 # Глобальные переменные для управления задачами
 active_tasks = {}
 
-@app.on_event("startup")
-async def startup_event():
-    """Инициализация базы данных при запуске приложения"""
-    create_database()
-    print("✅ База данных готова")
-
 @app.get("/")
 async def root():
     """Корневой endpoint - информация о API"""
@@ -64,9 +61,10 @@ async def root():
 async def health_check():
     """Проверка статуса работы API и базы данных"""
     try:
-        # Проверяем соединение с БД
+                                                        # 1. ✅ Проверяем соединение с БД
         for connection in connect_db():
             cursor = connection.cursor()
+                                                        # 2. ✅ Проверяем что БД отвечает на запросы
             cursor.execute("SELECT COUNT(*) FROM gifts")
             gift_count = cursor.fetchone()[0]
         
@@ -113,7 +111,7 @@ async def get_all_gifts(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при получении данных из БД: {e}")
 
-@app.get("/gifts/{gift_id}", response_model=GiftBase)
+@app.get("/gifts/{gift_id}", response_model=GiftBase) #Только первый в таблице
 async def get_gift_by_id(gift_id: int):
     """
     Получить информацию о конкретном гифте по ID
@@ -184,6 +182,7 @@ async def parse_single_gift(gift_data: GiftCreate):
             status_code=500, 
             detail=f"Ошибка при парсинге гифта {gift_data.gift_id}: {e}"
         )
+
 
 async def background_parsing(
     task_id: str, 
@@ -275,37 +274,46 @@ async def start_batch_parsing(task: ParseTask, background_tasks: BackgroundTasks
         }
     }
 
-@app.get("/tasks/{task_id}")
-async def get_task_status(task_id: str):
-    """
-    Получить статус и прогресс фоновой задачи парсинга
+# @app.get("/tasks/{task_id}")
+# async def get_task_status(task_id: str):
+#     """
+#     Получить статус и прогресс фоновой задачи парсинга
     
-    - **task_id**: Идентификатор задачи полученный при запуске парсинга
-    """
-    if task_id not in active_tasks:
-        raise HTTPException(
-            status_code=404, 
-            detail=f"Задача с ID {task_id} не найдена"
-        )
+#     - **task_id**: Идентификатор задачи полученный при запуске парсинга
+#     """
+#     if task_id not in active_tasks:
+#         raise HTTPException(
+#             status_code=404, 
+#             detail=f"Задача с ID {task_id} не найдена"
+#         )
     
-    return active_tasks[task_id]
+#     return active_tasks[task_id]
 
-@app.get("/tasks/")
-async def get_all_tasks():
+# @app.get("/tasks/")
+# async def get_all_tasks():
+#     """
+#     Получить список всех активных и завершенных задач
+#     """
+#     return {
+#         "active_tasks": {
+#             task_id: info for task_id, info in active_tasks.items() 
+#             if info.get("status") != "completed"
+#         },
+#         "completed_tasks": {
+#             task_id: info for task_id, info in active_tasks.items() 
+#             if info.get("status") == "completed"
+#         },
+#         "total_tasks": len(active_tasks)
+#     }
+
+async def get_gifts():
     """
-    Получить список всех активных и завершенных задач
+    Получить список гифтов через API (возвращает JSON).
     """
-    return {
-        "active_tasks": {
-            task_id: info for task_id, info in active_tasks.items() 
-            if info.get("status") != "completed"
-        },
-        "completed_tasks": {
-            task_id: info for task_id, info in active_tasks.items() 
-            if info.get("status") == "completed"
-        },
-        "total_tasks": len(active_tasks)
-    }
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"{config.API_URL}/gifts/" ) as response:
+            return await response.json()
+    
 
 if __name__ == "__main__":
     uvicorn.run(
@@ -315,3 +323,5 @@ if __name__ == "__main__":
         reload=True,
         log_level="info"
     )
+    
+    
