@@ -3,6 +3,8 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 import asyncio, uvicorn, aiohttp
 import time
+import sqlalchemy
+from DB.models import Gift
 
 # Импортируем наши функции
 from parser.fragment import parse_fragment
@@ -62,11 +64,8 @@ async def health_check():
     """Проверка статуса работы API и базы данных"""
     try:
                                                         # 1. ✅ Проверяем соединение с БД
-        for connection in connect_db():
-            cursor = connection.cursor()
-                                                        # 2. ✅ Проверяем что БД отвечает на запросы
-            cursor.execute("SELECT COUNT(*) FROM gifts")
-            gift_count = cursor.fetchone()[0]
+        with connect_db() as session:
+            gift_count = session.query(Gift).count()    # 2. ✅ Пытаемся выполнить простой запрос
         
         return {
             "status": "healthy", 
@@ -79,34 +78,25 @@ async def health_check():
 
 @app.get("/gifts/", response_model=List[GiftBase])
 async def get_all_gifts(
-    limit: int = 100, 
+    limit: int = 100,
     offset: int = 0
 ):
     """
     Получить список всех гифтов из базы данных
-    
-    - **limit**: Ограничение количества возвращаемых записей (по умолчанию 100)
-    - **offset**: Смещение для пагинации (по умолчанию 0)
     """
     try:
-        for connection in connect_db():
-            cursor = connection.cursor()
-            cursor.execute(
-                "SELECT id, name, model, backdrop, symbol, sale_price FROM gifts ORDER BY id LIMIT ? OFFSET ?",
-                (limit, offset)
-            )
-            gifts = cursor.fetchall()
-            
+        with connect_db() as session:
+            gifts = session.query(Gift).order_by(Gift.id).limit(limit).offset(offset).all()
             return [
                 GiftBase(
-                    id=row[0],
-                    name=row[1],
-                    model=row[2],
-                    backdrop=row[3],
-                    symbol=row[4],
-                    sale_price=row[5]
+                    id=g.id,
+                    name=g.name,
+                    model=g.model,
+                    backdrop=g.backdrop,
+                    symbol=g.symbol,
+                    sale_price=g.sale_price
                 )
-                for row in gifts
+                for g in gifts
             ]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при получении данных из БД: {e}")
@@ -323,5 +313,4 @@ if __name__ == "__main__":
         reload=True,
         log_level="info"
     )
-    
-    
+
