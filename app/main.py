@@ -109,14 +109,8 @@ async def get_gift_by_id(gift_id: int):
     - **gift_id**: ID гифта для поиска в базе данных
     """
     try:
-        for connection in connect_db():
-            cursor = connection.cursor()
-            cursor.execute(
-                "SELECT id, name, model, backdrop, symbol, sale_price FROM gifts WHERE id = ?",
-                (gift_id,)
-            )
-            gift = cursor.fetchone()
-            
+        with connect_db() as session:
+            gift = session.query(Gift).filter(Gift.id == gift_id).first()
             if not gift:
                 raise HTTPException(
                     status_code=404, 
@@ -124,13 +118,15 @@ async def get_gift_by_id(gift_id: int):
                 )
             
             return GiftBase(
-                id=gift[0],
-                name=gift[1],
-                model=gift[2],
-                backdrop=gift[3],
-                symbol=gift[4],
-                sale_price=gift[5]
+                id=gift.id,
+                name=gift.name,
+                model=gift.model,
+                backdrop=gift.backdrop,
+                symbol=gift.symbol,
+                sale_price=gift.sale_price
             )
+                       
+           
     except HTTPException:
         raise
     except Exception as e:
