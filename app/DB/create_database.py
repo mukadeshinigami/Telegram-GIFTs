@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from contextlib import contextmanager
 from datetime import datetime
-from models import Base, Gift  # Импортируем модель из вашего файла model.py
+from DB.models import Base, Gift  # Импортируем модель из вашего файла model.py
 
 DATABASE_URL = "sqlite:///gifts.db"  # URL вашей базы данных SQLite
 engine = create_engine(DATABASE_URL)
