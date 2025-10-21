@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from DB.models import Base, Gift  # Импортируем модель из вашего файла model.py
 
-DATABASE_URL = "sqlite:///gifts.db"  # URL вашей базы данных SQLite
+DATABASE_URL = "sqlite:///gifts.db"   # URL вашей базы данных SQLite
 engine = create_engine(DATABASE_URL)
 SessionFactory = sessionmaker(bind=engine)
 Session = scoped_session(SessionFactory)
@@ -50,7 +50,7 @@ def start_database(
             sale_price=sale_price,
             rarity_score=None,  
             estimated_price=None,
-            date_added=datetime.now()  # Автоматически устанавливаем текущее время
+            date_added=datetime.now()  
         )
         session.add(new_gift)
     print(f"Добавлен новый Gift: {name}")
