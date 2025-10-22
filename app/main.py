@@ -3,11 +3,14 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 import asyncio, uvicorn, aiohttp
 import time
+import sqlalchemy
+from DB.models import Gift
 
 # Импортируем наши функции
 from parser.fragment import parse_fragment
 from DB.create_database import create_database, connect_db
 from bot.config import Config
+
 
 config = Config()
 
@@ -16,6 +19,7 @@ app = FastAPI(
     description="API для парсинга и управления гифтами с fragment.com",
     version="1.0.0"
 )
+
 
 # Модели Pydantic для валидации данных
 class GiftBase(BaseModel):
@@ -32,6 +36,7 @@ class GiftCreate(BaseModel):
     gift_id: int = Field(gt=0, description="ID гифта для парсинга (должен быть больше 0)")
     user_selection_gifts: str = Field(description="Тип гифта (например: lootbag)")
 
+
 class ParseTask(BaseModel):
     """Модель для запуска фоновой задачи парсинга"""
     start_id: int = Field(gt=0, description="Начальный ID диапазона для парсинга")
@@ -41,6 +46,7 @@ class ParseTask(BaseModel):
 
 # Глобальные переменные для управления задачами
 active_tasks = {}
+
 
 @app.get("/")
 async def root():
@@ -57,16 +63,14 @@ async def root():
         }
     }
 
+
 @app.get("/health")
 async def health_check():
     """Проверка статуса работы API и базы данных"""
     try:
                                                         # 1. ✅ Проверяем соединение с БД
-        for connection in connect_db():
-            cursor = connection.cursor()
-                                                        # 2. ✅ Проверяем что БД отвечает на запросы
-            cursor.execute("SELECT COUNT(*) FROM gifts")
-            gift_count = cursor.fetchone()[0]
+        with connect_db() as session:
+            gift_count = session.query(Gift).count()    # 2. ✅ Пытаемся выполнить простой запрос
         
         return {
             "status": "healthy", 
@@ -77,70 +81,58 @@ async def health_check():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка подключения к БД: {e}")
 
+
 @app.get("/gifts/", response_model=List[GiftBase])
 async def get_all_gifts(
-    limit: int = 100, 
+    limit: int = 100,
     offset: int = 0
 ):
     """
     Получить список всех гифтов из базы данных
-    
-    - **limit**: Ограничение количества возвращаемых записей (по умолчанию 100)
-    - **offset**: Смещение для пагинации (по умолчанию 0)
     """
     try:
-        for connection in connect_db():
-            cursor = connection.cursor()
-            cursor.execute(
-                "SELECT id, name, model, backdrop, symbol, sale_price FROM gifts ORDER BY id LIMIT ? OFFSET ?",
-                (limit, offset)
-            )
-            gifts = cursor.fetchall()
-            
+        with connect_db() as session:
+            gifts = session.query(Gift).order_by(Gift.id).limit(limit).offset(offset).all()
             return [
                 GiftBase(
-                    id=row[0],
-                    name=row[1],
-                    model=row[2],
-                    backdrop=row[3],
-                    symbol=row[4],
-                    sale_price=row[5]
+                    id=g.id,
+                    name=g.name,
+                    model=g.model,
+                    backdrop=g.backdrop,
+                    symbol=g.symbol,
+                    sale_price=g.sale_price
                 )
-                for row in gifts
+                for g in gifts
             ]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при получении данных из БД: {e}")
 
-@app.get("/gifts/{gift_id}", response_model=GiftBase) #Только первый в таблице
-async def get_gift_by_id(gift_id: int):
+
+@app.get("/gifts/{gift_id}", response_model=GiftBase)
+async def get_gift_by_id(name: Optional[str] = None):
     """
     Получить информацию о конкретном гифте по ID
     
     - **gift_id**: ID гифта для поиска в базе данных
     """
     try:
-        for connection in connect_db():
-            cursor = connection.cursor()
-            cursor.execute(
-                "SELECT id, name, model, backdrop, symbol, sale_price FROM gifts WHERE id = ?",
-                (gift_id,)
-            )
-            gift = cursor.fetchone()
-            
+        with connect_db() as session:
+            gift = session.query(Gift).filter(Gift.name == name).first()
             if not gift:
                 raise HTTPException(
                     status_code=404, 
-                    detail=f"Гифт с ID {gift_id} не найден в базе данных"
+                    detail=f"Гифт с ID {name} не найден в базе данных"
                 )
             
             return GiftBase(
-                id=gift[0],
-                name=gift[1],
-                model=gift[2],
-                backdrop=gift[3],
-                symbol=gift[4],
-                sale_price=gift[5]
+                id=gift.id,
+                name=gift.name,
+                model=gift.model,
+                backdrop=gift.backdrop,
+                symbol=gift.symbol,
+                sale_price=gift.sale_price
             )
+                                
     except HTTPException:
         raise
     except Exception as e:
@@ -148,6 +140,7 @@ async def get_gift_by_id(gift_id: int):
             status_code=500, 
             detail=f"Ошибка при поиске гифта в БД: {e}"
         )
+
 
 @app.post("/parse/", response_model=GiftBase)
 async def parse_single_gift(gift_data: GiftCreate):
@@ -323,5 +316,4 @@ if __name__ == "__main__":
         reload=True,
         log_level="info"
     )
-    
-    
+
