@@ -108,7 +108,7 @@ async def get_all_gifts(
         raise HTTPException(status_code=500, detail=f"Ошибка при получении данных из БД: {e}")
 
 
-@app.get("/gifts/{gift_id}", response_model=GiftBase) #Только первый в таблице
+@app.get("/gifts/{gift_id}", response_model=GiftBase)
 async def get_gift_by_id(name: Optional[str] = None):
     """
     Получить информацию о конкретном гифте по ID
