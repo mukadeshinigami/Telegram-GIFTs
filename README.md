@@ -26,8 +26,10 @@ Small preview:
 ---
 Quick start:
 
- - Copy .env.example to .env and fill in the bot token (BOT_TOKEN) and other variables.
+ - Fill in the bot token (BOT_TOKEN) and other variables.
  - Install dependencies: pip install -r requirements.txt
- - Run: python bot.py
+ - Run the API server: app.main.py
+ - Run the Telegram bot: app.bot.main.py
+ - Finish 🤍🍭
 
 
