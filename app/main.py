@@ -28,7 +28,7 @@ class GiftBase(BaseModel):
     model: str = Field(description="Модель гифта")
     backdrop: str = Field(description="Фон гифта")
     symbol: str = Field(description="Символ гифта")
-    sale_price: str = Field(description="Цена продажи или статус 'Minted'")
+    sale_price: int = Field(description="Цена продажи или статус 'Minted'")
 
 
 class GiftCreate(BaseModel):
@@ -58,6 +58,12 @@ class GiftUpgrade(BaseModel):
     sale_price: int = Field(description="Цена продажи или статус 'Minted'")
     rarity_score: Optional[int] = Field(description="Новый показатель редкости гифта")
     estimated_price: Optional[int] = Field(description="Новая оценочная цена гифта")
+
+
+class GiftPatch(BaseModel):
+    """Модель для частичного обновления гифта (PATCH)"""
+
+    sale_price: Optional[int] = Field(None, description="Новая цена (или 'Minted')")
 
 
 @app.get("/")
@@ -226,6 +232,56 @@ async def update_gift_by_name(name: Optional[str], gift_data: GiftUpgrade):
             status_code=500, 
             detail=f"Ошибка при парсинге гифта {gift_data.name}: {e}"
         )
+
+
+@app.patch("/gifts/{gift_name}", response_model=GiftBase)
+async def patch_gift(name: Optional[str], patch: GiftPatch):
+    """Частичное обновление гифта по его полю `id` (обновляет `name` и/или `sale_price`).
+
+    - **gift_id**: числовой ID (поле `id` в таблице)
+    - payload: объект с необязательными полями `name` и `price`
+    """
+    try:
+        data = patch.dict(exclude_unset=True)
+        if not data:
+            raise HTTPException(status_code=400, detail="Нет полей для обновления")
+
+        with connect_db() as session:
+            # Ищем по числовому полю id в модели
+            gift = session.query(Gift).filter(Gift.name == name).first()
+            if not gift:
+                raise HTTPException(status_code=404, detail=f"Гифт с именем {name} не найден")
+
+            # Обновляем только переданные поля
+            if "name" in data:
+                gift.name = data["name"]
+            if "sale_price" in data:
+                # Ожидаем целое число для цены
+                gift.sale_price = int(data["sale_price"]) if data["sale_price"] is not None else None
+
+            session.commit()
+            session.refresh(gift)
+
+            # Приводим sale_price к int для ответа (если необходимо)
+            sp = gift.sale_price
+            try:
+                sp = int(sp) if sp is not None else None
+            except Exception:
+                # если хранится строка нечислового формата (например 'Minted'), оставим как есть
+                pass
+
+            return GiftBase(
+                id=gift.id,
+                name=gift.name,
+                model=gift.model,
+                backdrop=gift.backdrop,
+                symbol=gift.symbol,
+                sale_price=sp
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка при обновлении гифта: {e}")
 
 ##############################################################
 # Фоновый парсинг диапазона гифтов

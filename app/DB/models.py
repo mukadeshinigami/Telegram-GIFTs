@@ -13,7 +13,7 @@ class Gift(Base):
     model = Column(String)
     backdrop = Column(String)
     symbol = Column(String)
-    sale_price = Column(String)
+    sale_price = Column(Integer)
     
     rarity_score = Column(Float)
     estimated_price = Column(Float)
