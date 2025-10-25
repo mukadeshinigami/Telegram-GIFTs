@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List
-import asyncio, uvicorn, aiohttp
-import time
+import asyncio, uvicorn, aiohttp, time, os
+
 import sqlalchemy
 from DB.models import Gift
 
@@ -11,6 +12,7 @@ from parser.fragment import parse_fragment
 from DB.create_database import create_database, connect_db
 from bot.config import Config
 
+DB_PATH = "/home/ame/Programming/python/project/Telegram-GIFTs/gifts.db"
 
 config = Config()
 
@@ -196,8 +198,6 @@ async def parse_single_gift(gift_data: GiftCreate):
 
 
 
-
-
 @app.put("/gifts/{gift_name}", response_model=GiftBase)
 async def update_gift_by_name(name: Optional[str], gift_data: GiftUpgrade):
     """
@@ -283,6 +283,17 @@ async def patch_gift(name: Optional[str], patch: GiftPatch):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при обновлении гифта: {e}")
 
+
+@app.get("/db/download")
+def download_db():
+    if not os.path.isfile(DB_PATH):
+        raise HTTPException(status_code=404, detail="Database file not found")
+    file_like = open(DB_PATH, mode="rb")
+    return StreamingResponse(file_like, media_type="application/octet-stream", headers={
+        "Content-Disposition": f"attachment; filename={os.path.basename(DB_PATH)}"
+    })
+    
+    
 ##############################################################
 # Фоновый парсинг диапазона гифтов
 ##############################################################
