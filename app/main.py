@@ -246,7 +246,11 @@ async def update_gift_by_name(name: Optional[str], gift_data: GiftUpgrade):
 
             # Применяем новые данные (аналогично примеру выше)
             for field, value in gift_data.dict(exclude_unset=True).items():
-                setattr(gift, field, value)
+                # Если обновляют sale_price — сохраняем как строку (поддерживаем статусы вроде 'Minted' и числа)
+                if field == "sale_price":
+                    setattr(gift, field, str(value) if value is not None else None)
+                else:
+                    setattr(gift, field, value)
 
             session.commit()
             session.refresh(gift)
@@ -290,8 +294,8 @@ async def patch_gift(name: Optional[str], patch: GiftPatch):
             if "name" in data:
                 gift.name = data["name"]
             if "sale_price" in data:
-                # Ожидаем целое число для цены
-                gift.sale_price = int(data["sale_price"]) if data["sale_price"] is not None else None
+                # Сохраняем как строку — это позволяет хранить статусы ('Minted') и числа
+                gift.sale_price = str(data["sale_price"]) if data["sale_price"] is not None else None
 
             session.commit()
             session.refresh(gift)
