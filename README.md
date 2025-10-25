@@ -32,4 +32,20 @@ Quick start:
  - Run the Telegram bot: app.bot.main.py
  - Finish 🤍🍭
 
+Configuration (local)
+---------------------
+
+For local development create a private `app/bot/config.py` with your secrets (bot token, DB path, etc.).
+To help, an example file is provided at `app/bot/config.example.py` — copy it and fill in real values:
+
+```bash
+cp app/bot/config.example.py app/bot/config.py
+# then edit app/bot/config.py and fill BOT_TOKEN, DB_PATH, etc.
+```
+
+If you prefer using environment variables, you can use a `.env` file and `python-dotenv`. Either way, do not commit
+`app/bot/config.py` or your `.env` file. The repository's `.gitignore` already ignores `config.py` and common `.env` files.
+
+If you accidentally committed secrets, remove them from the git history and rotate the secrets (e.g., regenerate BOT_TOKEN).
+
 

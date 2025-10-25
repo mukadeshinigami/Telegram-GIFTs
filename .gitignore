@@ -34,4 +34,16 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+ 
+# Config files (ignore local config and env files containing secrets)
+config.py
+**/config.py
+app/bot/config.py
+.env.local
+.env.*
+
+# Explicit DB file(s) to ignore (gifts.db is also covered by *.db above,
+# but added here for clarity and to avoid accidental commits of the project DB)
+gifts.db
+/gifts.db
 EOF
