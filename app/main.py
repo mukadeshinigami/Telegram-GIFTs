@@ -18,10 +18,9 @@ app = FastAPI(
     title="Telegram Gifts Parser API",
     description="API для парсинга и управления гифтами с fragment.com",
     version="1.0.0"
-)
+)                                                                                                                                                                                                  
 
 
-# Модели Pydantic для валидации данных
 class GiftBase(BaseModel):
     """Базовая модель данных гифта"""
     id: int = Field(description="Уникальный идентификатор гифта")
@@ -30,6 +29,7 @@ class GiftBase(BaseModel):
     backdrop: str = Field(description="Фон гифта")
     symbol: str = Field(description="Символ гифта")
     sale_price: str = Field(description="Цена продажи или статус 'Minted'")
+
 
 class GiftCreate(BaseModel):
     """Модель для создания запроса на парсинг гифта"""
@@ -46,6 +46,18 @@ class ParseTask(BaseModel):
 
 # Глобальные переменные для управления задачами
 active_tasks = {}
+
+
+class GiftUpgrade(BaseModel):
+    """Модель для обновления информации о гифтах"""
+    id: int = Field(description="ID гифта для обновления")
+    name: str = Field(description="Название гифта")
+    model: str = Field(description="Модель гифта")
+    backdrop: str = Field(description="Фон гифта")
+    symbol: str = Field(description="Символ гифта")
+    sale_price: int = Field(description="Цена продажи или статус 'Minted'")
+    rarity_score: Optional[int] = Field(description="Новый показатель редкости гифта")
+    estimated_price: Optional[int] = Field(description="Новая оценочная цена гифта")
 
 
 @app.get("/")
@@ -108,12 +120,12 @@ async def get_all_gifts(
         raise HTTPException(status_code=500, detail=f"Ошибка при получении данных из БД: {e}")
 
 
-@app.get("/gifts/{gift_id}", response_model=GiftBase)
+@app.get("/gifts/{gift_name}", response_model=GiftBase)
 async def get_gift_by_id(name: Optional[str] = None):
     """
     Получить информацию о конкретном гифте по ID
     
-    - **gift_id**: ID гифта для поиска в базе данных
+    - **gift_name**: ID гифта для поиска в базе данных
     """
     try:
         with connect_db() as session:
@@ -176,6 +188,48 @@ async def parse_single_gift(gift_data: GiftCreate):
             detail=f"Ошибка при парсинге гифта {gift_data.gift_id}: {e}"
         )
 
+
+
+
+
+@app.put("/gifts/{gift_name}", response_model=GiftBase)
+async def update_gift_by_name(name: Optional[str], gift_data: GiftUpgrade):
+    """
+    Ручное обновление гифта по имени (name)
+    - **gift_name**: имя гифта для обновления
+    """
+    try: 
+        with connect_db() as session:
+            gift = session.query(Gift).filter(Gift.name == name).first()
+            if not gift:
+                raise HTTPException(status_code=404, detail="Gift not found")
+
+            # Применяем новые данные (аналогично примеру выше)
+            for field, value in gift_data.dict(exclude_unset=True).items():
+                setattr(gift, field, value)
+
+            session.commit()
+            session.refresh(gift)
+            
+            return GiftBase(
+                id=gift.id,
+                name=gift.name,
+                model=gift.model,
+                backdrop=gift.backdrop,
+                symbol=gift.symbol,
+                sale_price=gift.sale_price
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Ошибка при парсинге гифта {gift_data.name}: {e}"
+        )
+
+##############################################################
+# Фоновый парсинг диапазона гифтов
+##############################################################
 
 async def background_parsing(
     task_id: str, 
