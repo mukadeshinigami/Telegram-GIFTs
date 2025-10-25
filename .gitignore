@@ -1,10 +1,17 @@
 # Создаем базовый .gitignore для Python проекта
 cat > .gitignore << EOF
-# Virtual Environment
+# Virtual envs
+.venv/
 venv/
-.env
 
-# Python
+# Environment files
+.env
+.env.local
+# ignore other env files but keep the example
+.env.*
+!.env.example
+
+# Python artifacts
 __pycache__/
 *.py[cod]
 *.so
@@ -13,37 +20,40 @@ build/
 dist/
 *.egg-info/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Database
+# Database files
 *.db
 *.sqlite3
+gifts.db
+/gifts.db
 
 # Logs
 *.log
 logs/
 
-# Temporary files
-*.tmp
-*.temp
- 
-# Config files (ignore local config and env files containing secrets)
+# Test / coverage / caches
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.cache/
+.mypy_cache/
+
+# IDEs / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local config that may contain secrets
 config.py
 **/config.py
 app/bot/config.py
-.env.local
-.env.*
 
-# Explicit DB file(s) to ignore (gifts.db is also covered by *.db above,
-# but added here for clarity and to avoid accidental commits of the project DB)
-gifts.db
-/gifts.db
-EOF
+# Misc
+*.tmp
+*.temp
+*.env  
