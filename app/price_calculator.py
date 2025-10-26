@@ -3,7 +3,10 @@ from sqlalchemy.orm import Session
 from DB.create_database import connect_db
 from DB.models import Gift
 import json
+from app.logging_config import get_logger
 
+logger = get_logger(__name__)
+ 
  
 def get_nfts_by_prefix(prefix: str) -> Gift:
     """
@@ -25,4 +28,4 @@ def calculate_rarity(nft, collection_stats):
 
 
 if __name__ == "__main__":
-    print(get_nfts_by_prefix("Plush Pepe"))
+    logger.info("nfts count for prefix=%s -> %s", "Plush Pepe", get_nfts_by_prefix("Plush Pepe"))

@@ -1,6 +1,11 @@
 import requests, time
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
+import logging
+
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 # Убери относительный импорт и добавь в начало файла:
 import sys
@@ -29,7 +34,7 @@ def parse_fragment(
         response = requests.get(url, headers=HEADERS, timeout=10)
         response.raise_for_status()
     except RequestException as e:
-        print(f"Ошибка запроса {url}: {e}")
+        logger.warning("Ошибка запроса %s: %s", url, e)
         return None
     
     soup = BeautifulSoup(response.text, "html.parser")
@@ -42,7 +47,7 @@ def parse_fragment(
     
     tags = soup.find_all("a", class_="table-cell-value-link")
     if len(tags) < 3 or not all(tags[i].text.strip() for i in range(3)):
-        print(f"Пропускаем Gift #{gift_id} — недостаточно данных")
+        logger.info("Пропускаем Gift #%s — недостаточно данных", gift_id)
         return None
     
     model = tags[0].text.strip()
@@ -61,16 +66,19 @@ def parse_fragment(
     try:
         create_database()
         start_database(
-        id = gift_id,
-        name = name_gift_id, 
-        model = model,
-        backdrop = backdrop,
-        symbol = symbol,
-        sale_price = sale_price
+            id=gift_id,
+            name=name_gift_id,
+            model=model,
+            backdrop=backdrop,
+            symbol=symbol,
+            sale_price=sale_price,
         )
     except Exception as e:
-        print(f"Ошибка при сохранении Gift #{gift_id} в БД: {e}")
+        logger.exception("Ошибка при сохранении Gift #%s в БД: %s", gift_id, e)
         return None
+    else:
+        # Возвращаем собранные данные после успешного сохранения
+        return gift_data
     
 if __name__ == "__main__":
     # Для тестирования можно задать значение по умолчанию
@@ -78,5 +86,7 @@ if __name__ == "__main__":
         data = parse_fragment(num, "lootbag")  # Передаем оба параметра
         if data:
             for key, value in data.items():
-                print(f"{key}: {value}")
+                logger.info("%s: %s", key, value)
         time.sleep(1)
+
+    # конец модуля

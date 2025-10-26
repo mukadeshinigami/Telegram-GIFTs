@@ -1,6 +1,8 @@
-import asyncio
 import os
+import asyncio
 import time
+import logging
+import uuid
 
 from typing import List, Optional
 
@@ -17,6 +19,11 @@ from DB.models import Gift
 from DB.create_database import connect_db, create_database
 from bot.config import Config
 from parser.fragment import parse_fragment
+
+# Ensure logging is initialized (app package init also calls this)
+from app.logging_config import get_logger, new_error_id
+
+logger = get_logger(__name__)
 
 DB_PATH = (
     "/home/ame/Programming/python/project/Telegram-GIFTs/gifts.db"
@@ -132,7 +139,9 @@ async def health_check():
             "total_gifts": gift_count,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка подключения к БД: {e}")
+        err_id = new_error_id()
+        logger.exception("Ошибка подключения к БД (%s)", err_id)
+        raise HTTPException(status_code=500, detail=f"Внутренняя ошибка сервера (id={err_id})")
 
 
 @app.get("/gifts/", response_model=List[GiftBase])
@@ -160,7 +169,9 @@ async def get_all_gifts(
                 for g in gifts
             ]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка при получении данных из БД: {e}")
+        err_id = new_error_id()
+        logger.exception("Ошибка при получении данных из БД (%s)", err_id)
+        raise HTTPException(status_code=500, detail=f"Внутренняя ошибка сервера (id={err_id})")
 
 
 @app.get("/gifts/{gift_name}", response_model=GiftBase)
@@ -191,10 +202,9 @@ async def get_gift_by_id(name: Optional[str] = None):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Ошибка при поиске гифта в БД: {e}"
-        )
+        err_id = new_error_id()
+        logger.exception("Ошибка при поиске гифта в БД (%s)", err_id)
+        raise HTTPException(status_code=500, detail=f"Внутренняя ошибка сервера (id={err_id})")
 
 
 @app.post("/parse/", response_model=GiftBase)
@@ -226,10 +236,9 @@ async def parse_single_gift(gift_data: GiftCreate):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Ошибка при парсинге гифта {gift_data.gift_id}: {e}"
-        )
+        err_id = new_error_id()
+        logger.exception("Ошибка при парсинге гифта %s (%s)", gift_data.gift_id, err_id)
+        raise HTTPException(status_code=500, detail=f"Внутренняя ошибка сервера (id={err_id})")
 
 
 @app.put("/gifts/{gift_name}", response_model=GiftBase)
@@ -266,10 +275,9 @@ async def update_gift_by_name(name: Optional[str], gift_data: GiftUpgrade):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Ошибка при парсинге гифта {gift_data.name}: {e}"
-        )
+        err_id = new_error_id()
+        logger.exception("Ошибка при парсинге гифта %s (%s)", gift_data.name, err_id)
+        raise HTTPException(status_code=500, detail=f"Внутренняя ошибка сервера (id={err_id})")
 
 
 @app.patch("/gifts/{gift_name}", response_model=GiftBase)
@@ -319,7 +327,9 @@ async def patch_gift(name: Optional[str], patch: GiftPatch):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка при обновлении гифта: {e}")
+        err_id = new_error_id()
+        logger.exception("Ошибка при обновлении гифта (%s)", err_id)
+        raise HTTPException(status_code=500, detail=f"Внутренняя ошибка сервера (id={err_id})")
 
 
 @app.get("/db/download")
@@ -377,7 +387,8 @@ async def background_parsing(
 
         except Exception as e:
             failed += 1
-            print(f"Ошибка при парсинге гифта {gift_id}: {e}")
+            err_id = new_error_id()
+            logger.exception("Ошибка при парсинге гифта %s (%s)", gift_id, err_id)
 
     # Завершаем задачу
     active_tasks[task_id]["status"] = "completed"
