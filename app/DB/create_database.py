@@ -3,6 +3,9 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from contextlib import contextmanager
 from datetime import datetime
 from DB.models import Base, Gift  # Импортируем модель из вашего файла model.py
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 DATABASE_URL = "sqlite:///gifts.db"   # URL вашей базы данных SQLite
 engine = create_engine(DATABASE_URL)
@@ -38,7 +41,7 @@ def start_database(
         
         exiting_gift = session.query(Gift).filter_by(name=name).first()
         if exiting_gift:
-            print(f"Gift с именем {name} уже существует.")
+            logger.warning("Gift с именем %s уже существует.", name)
             return 
         
         new_gift = Gift(
@@ -53,7 +56,7 @@ def start_database(
             date_added=datetime.now()  
         )
         session.add(new_gift)
-    print(f"Добавлен новый Gift: {name}")
+    logger.info("Добавлен новый Gift: %s", name)
 if __name__ == "__main__":
     
     create_database()       # Тестовый запуск

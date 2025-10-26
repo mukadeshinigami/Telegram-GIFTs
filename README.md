@@ -32,6 +32,40 @@ Quick start:
  - Run the Telegram bot: app.bot.main.py
  - Finish 🤍🍭
 
+Install as a package (recommended for development)
+-----------------------------------------------
+
+Installing the project into your virtualenv makes imports like `import app...` work reliably.
+
+From the repository root:
+
+```bash
+# create and activate a virtualenv (if you haven't already)
+python -m venv .venv
+source .venv/bin/activate
+
+# install runtime deps
+pip install -r requirements.txt
+
+# install this package in editable mode so imports resolve and you can make changes in-place
+pip install -e .
+```
+
+After that you can run the app via uvicorn:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Logging
+-------
+
+This project uses a centralized logging configuration located at `app/logging_config.py`.
+
+- Logs are written to console and to a rotating file at `logs/app.log` (created automatically).
+- The logging is initialized when the `app` package is imported. If you run modules directly, they also initialize logging.
+- When an internal server error occurs, the API returns a short error id (e.g. `id=abcd1234`) and the full traceback is recorded in the logs — use the id to correlate client errors with server-side logs.
+
 Configuration (local)
 ---------------------
 
