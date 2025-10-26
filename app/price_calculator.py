@@ -1,7 +1,7 @@
 from typing import List
 from sqlalchemy.orm import Session
-from DB.create_database import connect_db
-from DB.models import Gift
+from .DB.create_database import connect_db
+from .DB.models import Gift
 import json
 from app.logging_config import get_logger
 

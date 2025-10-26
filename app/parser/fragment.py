@@ -7,12 +7,8 @@ from app.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-# Убери относительный импорт и добавь в начало файла:
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
-from DB.create_database import start_database, create_database
+# Импортируем модули БД относительно пакета app
+from ..DB.create_database import start_database, create_database
 
 
 HEADERS = {
