@@ -18,14 +18,3 @@ async def get_gifts() -> List[dict]:
             return await resp.json()
         
 
-@user_router.message(Command("gift_all"))                        
-async def show_gift_handler(message: Message):
-    await message.answer("🔄 Загружаю гифты...")
-    try:
-        gifts = await get_gifts()
-    except Exception:
-        await message.answer("Ошибка при получении гифтов.")
-        return
-
-    for g in gifts:
-        await message.answer(g if isinstance(g, str) else str(g))

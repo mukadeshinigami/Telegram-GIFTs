@@ -30,10 +30,13 @@ dp = Dispatcher()
 
 from app.bot.handlers import gifts
 from app.bot.handlers import start
+from app.bot.handlers import parse
     
 dp.include_router(start.user_router)
 
 dp.include_router(gifts.user_router)
+
+dp.include_router(parse.user_router)
 
     
 async def main() -> None:

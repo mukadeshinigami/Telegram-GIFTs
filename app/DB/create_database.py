@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from contextlib import contextmanager
 from datetime import datetime
-from DB.models import Base, Gift  # Импортируем модель из вашего файла model.py
+from .models import Base, Gift  # Импортируем модель из текущего пакета DB
 from app.logging_config import get_logger
 
 logger = get_logger(__name__)

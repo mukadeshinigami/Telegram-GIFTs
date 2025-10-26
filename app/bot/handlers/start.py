@@ -16,6 +16,7 @@ async def start_handler(message: Message) -> None:
 
 @user_router.message(Command("help"))
 async def help_handler(message: Message):
+    # Показать список команд
     text = (
         "/help — показать эту помощь\n"
         "/test — показать пример меню\n"
@@ -26,6 +27,7 @@ async def help_handler(message: Message):
 
 
 @user_router.message(Command("test"))
+    # Показать пример меню
 async def test_handler(message: Message) -> None:
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text="🎭 Показать NFT", callback_data="show_nfts"))

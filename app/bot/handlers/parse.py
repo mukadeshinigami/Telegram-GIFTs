@@ -3,52 +3,86 @@ from aiogram.filters import Command
 from aiogram.types import Message
 import asyncio
 from typing import Optional
+import logging
+import aiohttp
+import re
 
-from app.parser.fragment import parse_fragment
+from app.bot.config import Config
+
+logger = logging.getLogger(__name__)
 
 user_router = Router()
 
 
-@user_router.message(Command("parse"))
-async def parse_command(message: Message) -> None:
-	"""Команда: /parse <id> <type>
+def normalize_name(name: str) -> str:
+    """Normalize a gift name for URL path.
 
-	Пример: /parse 123 lootbag
-	"""
-	parts = message.text.split()
-	if len(parts) < 3:
-		await message.answer("Использование: /parse <id> <type>\nПример: /parse 123 lootbag")
-		return
+    Examples:
+      'Plush Pepe #2773' -> 'plushpepe'
+      'Hanging Star' -> 'hangingstar'
+    """
+    if not name:
+        return ""
+    # Remove trailing ' #digits' pattern
+    name = re.sub(r"\s*#\d+$", "", name)
+    # Remove all non-alphanumeric characters
+    name = re.sub(r"[^A-Za-z0-9]", "", name)
+    return name.lower()
 
-	try:
-		gift_id = int(parts[1])
-	except ValueError:
-		await message.answer("ID должен быть числом.")
-		return
 
-	gift_type = parts[2]
+@user_router.message(Command("Get_All_Gifts"))
+async def parse_command(message: Message):
 
-	await message.answer(f"Парсинг Gift #{gift_id} ({gift_type})... Пожалуйста, подождите.")
+    """
+    Handle the /Get_All_Gifts command to fetch and display all available gifts.
+    This function retrieves all gifts from the API endpoint, processes each gift
+    to create Telegram NFT links, and sends them to the user. The links are
+    formatted as t.me/nft/{normalized_name}-{gift_id}.
+    Args:
+        message (Message): The incoming Telegram message containing the command.
+    Returns:
+        None: This function sends responses directly to the user via message.answer().
+    Raises:
+        Exception: Catches and logs API connection errors, gift processing errors,
+                and other exceptions that may occur during execution.
+    Note:
+        - If the API request fails, an error message is sent to the user
+        - If no gifts are available, an appropriate message is displayed
+        - Gift names are normalized before creating links
+        - Only gifts with valid ID and name/model are processed
+        - A summary message is sent if no links could be generated
+    """
+    config = Config()
+    api_url = config.API_URL.rstrip("/")
 
-	try:
-		# parse_fragment — синхронная функция (requests). Запускаем в threadpool.
-		result = await asyncio.to_thread(parse_fragment, gift_id, gift_type)
-	except Exception as e:
-		await message.answer(f"Ошибка при парсинге: {e}")
-		return
+    try:
+        async with aiohttp.ClientSession() as sess:
+            async with sess.get(f"{api_url}/gifts/") as resp:
+                resp.raise_for_status()
+                gifts = await resp.json()
+    except Exception as e:
+        logger.exception("Failed to fetch gifts from API: %s", e)
+        await message.answer("Ошибка при получении списка гифтов от API.")
+        return
 
-	if not result:
-		await message.answer("Гифт не найден или недостаточно данных для сохранения.")
-		return
+    if not gifts:
+        await message.answer("Список гифтов пуст.")
+        return
 
-	# Формируем краткий ответ пользователю
-	text_lines = [
-		f"ID: {result.get('id')}",
-		f"Name: {result.get('name')}",
-		f"Model: {result.get('model')}",
-		f"Backdrop: {result.get('backdrop')}",
-		f"Symbol: {result.get('symbol')}",
-		f"Sale price: {result.get('sale_price')}",
-	]
+    sent = 0
+    for g in gifts:
+        try:
+            gid = g.get("id")
+            name = g.get("name") or g.get("model") or ""
+            normalized = normalize_name(name)
+            if not normalized or not gid:
+                continue
+            link = f"t.me/nft/{normalized}-{gid}"
+            await message.answer(link)
+            sent += 1
+        except Exception:
+            logger.exception("Failed to process gift: %s", g)
 
-	await message.answer("\n".join(text_lines))
+    if sent == 0:
+        await message.answer("Не удалось сформировать ни одной ссылки.")
+

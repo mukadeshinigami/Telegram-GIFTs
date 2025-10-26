@@ -13,12 +13,13 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 import sqlalchemy
-from DB.models import Gift
+# Импортируем модели и функции относительно пакета `app`
+from .DB.models import Gift
 
 # Импортируем наши функции
-from DB.create_database import connect_db, create_database
-from bot.config import Config
-from parser.fragment import parse_fragment
+from .DB.create_database import connect_db, create_database
+from .bot.config import Config
+from .parser.fragment import parse_fragment
 
 # Ensure logging is initialized (app package init also calls this)
 from app.logging_config import get_logger, new_error_id
