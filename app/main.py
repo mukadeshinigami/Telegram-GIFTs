@@ -243,28 +243,47 @@ async def parse_single_gift(gift_data: GiftCreate):
 
 
 @app.put("/gifts/{gift_name}", response_model=GiftBase)
-async def update_gift_by_name(name: Optional[str], gift_data: GiftUpgrade):
+async def update_gift_by_name(gift_name: str, gift_data: GiftUpgrade):
     """
-    Ручное обновление гифта по имени (name)
+    Ручное обновление гифта по имени
     - **gift_name**: имя гифта для обновления
     """
     try:
         with connect_db() as session:
-            gift = session.query(Gift).filter(Gift.name == name).first()
+            # Ищем гифт по имени
+            gift = session.query(Gift).filter(Gift.name == gift_name).first()
             if not gift:
-                raise HTTPException(status_code=404, detail="Gift not found")
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Gift with name '{gift_name}' not found"
+                )
+            
+            # Обновляем поля гифта
+            gift.name = gift_data.name
+            gift.model = gift_data.model
+            gift.backdrop = gift_data.backdrop
+            gift.symbol = gift_data.symbol
+            
+            # Обрабатываем специальные поля
+            if isinstance(gift_data.sale_price, (int, str)) or gift_data.sale_price is None:
+                gift.sale_price = str(gift_data.sale_price) if gift_data.sale_price is not None else None
+            
+            if gift_data.rarity_score is not None:
+                gift.rarity_score = gift_data.rarity_score
+            
+            if gift_data.estimated_price is not None:
+                gift.estimated_price = gift_data.estimated_price
+            
+            # Сохраняем изменения
+            try:
+                session.commit()
+                session.refresh(gift)
+            except Exception as e:
+                session.rollback()
+                logger.exception("Ошибка при сохранении изменений: %s", str(e))
+                raise HTTPException(status_code=500, detail="Database error while updating gift")
 
-            # Применяем новые данные (аналогично примеру выше)
-            for field, value in gift_data.dict(exclude_unset=True).items():
-                # Если обновляют sale_price — сохраняем как строку (поддерживаем статусы вроде 'Minted' и числа)
-                if field == "sale_price":
-                    setattr(gift, field, str(value) if value is not None else None)
-                else:
-                    setattr(gift, field, value)
-
-            session.commit()
-            session.refresh(gift)
-
+            # Возвращаем обновленные данные
             return GiftBase(
                 id=gift.id,
                 name=gift.name,
@@ -277,7 +296,7 @@ async def update_gift_by_name(name: Optional[str], gift_data: GiftUpgrade):
         raise
     except Exception as e:
         err_id = new_error_id()
-        logger.exception("Ошибка при парсинге гифта %s (%s)", gift_data.name, err_id)
+        logger.exception("Ошибка при обновлении гифта %s (%s)", gift_name, err_id)
         raise HTTPException(status_code=500, detail=f"Внутренняя ошибка сервера (id={err_id})")
 
 
