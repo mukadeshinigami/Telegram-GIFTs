@@ -2,6 +2,12 @@ from aiogram import Router, F, html
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
+import json
+import html as _html
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 user_router = Router()
 
@@ -46,3 +52,38 @@ async def show_stats_handler(callback: CallbackQuery):
     await callback.answer()
     await callback.message.answer("🔄")
 
+
+@user_router.message(Command("root"))
+async def root_command(message: Message) -> None:
+  """Возвращает реальную информацию из корневого эндпоинта API (app.main.root)."""
+  # Lazy import to avoid circular imports at module import time
+  from app.main import root as api_root
+
+  try:
+    data = await api_root()
+  except Exception as e:
+    logger.exception("Ошибка при вызове API root: %s", e)
+    return
+
+  pretty = json.dumps(data, ensure_ascii=False, indent=2)
+  # Escape for HTML pre block
+  escaped = _html.escape(pretty)
+  await message.answer(f"<pre>{escaped}</pre>", parse_mode="HTML")
+
+
+@user_router.message(Command("health"))
+async def health_command(message: Message) -> None:
+  """Возвращает состояние здоровья из эндпоинта API (app.main.health)."""
+  # Lazy import to avoid circular imports at module import time
+  from app.main import health_check as api_health
+
+  try:
+    data = await api_health()
+  except Exception as e:
+    logger.exception("Ошибка при вызове API health: %s", e)
+    return
+
+  pretty = json.dumps(data, ensure_ascii=False, indent=2)
+  # Escape for HTML pre block
+  escaped = _html.escape(pretty)
+  await message.answer(f"<pre>{escaped}</pre>", parse_mode="HTML")
