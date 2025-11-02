@@ -7,7 +7,7 @@ import uuid
 from typing import List, Optional
 
 import aiohttp
-import uvicorn
+import uvicorn # uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -176,19 +176,19 @@ async def get_all_gifts(
 
 
 @app.get("/gifts/{gift_name}", response_model=GiftBase)
-async def get_gift_by_id(name: Optional[str] = None):
+async def get_gift_by_id(gift_name: str):
     """
-    Получить информацию о конкретном гифте по ID
+    Получить информацию о конкретном гифте по имени
 
-    - **gift_name**: ID гифта для поиска в базе данных
+    - **gift_name**: Имя гифта для поиска в базе данных (например: "Plush Pepe #2790")
     """
     try:
         with connect_db() as session:
-            gift = session.query(Gift).filter(Gift.name == name).first()
+            gift = session.query(Gift).filter(Gift.name == gift_name).first()
             if not gift:
                 raise HTTPException(
                     status_code=404,
-                    detail=f"Гифт с ID {name} не найден в базе данных"
+                    detail=f"Гифт с именем '{gift_name}' не найден в базе данных"
                 )
 
             return GiftBase(

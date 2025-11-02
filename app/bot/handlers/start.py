@@ -5,9 +5,12 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton
 import json
 import html as _html
 import logging
+import aiohttp
 
+from app.bot.config import Config
 
 logger = logging.getLogger(__name__)
+config = Config()
 
 user_router = Router()
 
@@ -56,13 +59,13 @@ async def show_stats_handler(callback: CallbackQuery):
 @user_router.message(Command("root"))
 async def root_command(message: Message) -> None:
   """Возвращает реальную информацию из корневого эндпоинта API (app.main.root)."""
-  # Lazy import to avoid circular imports at module import time
-  from app.main import root as api_root
-
   try:
-    data = await api_root()
+    async with aiohttp.ClientSession() as session:
+      async with session.get(f"{config.API_URL}/") as response:
+        data = await response.json()
   except Exception as e:
     logger.exception("Ошибка при вызове API root: %s", e)
+    await message.answer("❌ Не удалось подключиться к API")
     return
 
   pretty = json.dumps(data, ensure_ascii=False, indent=2)
@@ -74,13 +77,13 @@ async def root_command(message: Message) -> None:
 @user_router.message(Command("health"))
 async def health_command(message: Message) -> None:
   """Возвращает состояние здоровья из эндпоинта API (app.main.health)."""
-  # Lazy import to avoid circular imports at module import time
-  from app.main import health_check as api_health
-
   try:
-    data = await api_health()
+    async with aiohttp.ClientSession() as session:
+      async with session.get(f"{config.API_URL}/health") as response:
+        data = await response.json()
   except Exception as e:
     logger.exception("Ошибка при вызове API health: %s", e)
+    await message.answer("❌ Не удалось подключиться к API")
     return
 
   pretty = json.dumps(data, ensure_ascii=False, indent=2)
