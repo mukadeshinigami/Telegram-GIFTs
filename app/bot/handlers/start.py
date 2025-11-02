@@ -62,7 +62,10 @@ async def root_command(message: Message) -> None:
   try:
     async with aiohttp.ClientSession() as session:
       async with session.get(f"{config.API_URL}/") as response:
-        data = await response.json()
+        if response.status != 200:
+          await message.answer(f"❌ Ошибка API: статус {response.status}")
+          return
+        data = await response.json() 
   except Exception as e:
     logger.exception("Ошибка при вызове API root: %s", e)
     await message.answer("❌ Не удалось подключиться к API")
@@ -80,6 +83,9 @@ async def health_command(message: Message) -> None:
   try:
     async with aiohttp.ClientSession() as session:
       async with session.get(f"{config.API_URL}/health") as response:
+        if response.status != 200:
+          await message.answer(f"❌ Ошибка API: статус {response.status}")
+          return
         data = await response.json()
   except Exception as e:
     logger.exception("Ошибка при вызове API health: %s", e)
