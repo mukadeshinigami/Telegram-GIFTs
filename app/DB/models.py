@@ -22,7 +22,7 @@ class Gift(Base):
     # поэтому храним его как текст (nullable).
     sale_price = Column(String, nullable=True)
 
-    rarity_score = Column(Float)
-    estimated_price = Column(Float)
+    rarity_score = Column(Float, nullable=True)
+    estimated_price = Column(Float, nullable=True)
     # Сохраняем время добавления с дефолтным значением
     date_added = Column(DateTime, default=datetime.utcnow)

@@ -4,6 +4,7 @@ from os import getenv
 from aiogram.client.default import DefaultBotProperties
 from aiogram import Bot, Dispatcher, html, F
 from aiogram.enums import ParseMode
+from aiogram.types import BotCommand
 from .config import Config
 import sys
 
@@ -38,9 +39,24 @@ dp.include_router(gifts.user_router)
 
 dp.include_router(parse.user_router)
 
+
+async def set_bot_commands(bot: Bot):
+    """Регистрация команд бота в меню Telegram."""
+    commands = [
+        BotCommand(command="start", description="🏠 Начать работу с ботом"),
+        BotCommand(command="help", description="❓ Помощь и список команд"),
+        BotCommand(command="gift_name", description="🔍 Найти гифт по названию"),
+        BotCommand(command="get_all_gifts", description="📋 Получить все гифты"),
+        BotCommand(command="health", description="💊 Проверить статус API"),
+    ]
+    await bot.set_my_commands(commands)
+
     
 async def main() -> None:
-    """Strart bot."""
+    """Start bot."""
+    # Регистрируем команды в меню Telegram
+    await set_bot_commands(bot)
+    # Запускаем polling
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
