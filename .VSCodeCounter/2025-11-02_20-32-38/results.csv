@@ -1,0 +1,22 @@
+"filename", "language", "Properties", "Markdown", "pip requirements", "Python", "comment", "blank", "total"
+"/home/ame/Programming/python/project/Telegram-GIFTs/README.md", "Markdown", 0, 59, 0, 0, 0, 27, 86
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/DB/__init__.py", "Python", 0, 0, 0, 0, 0, 1, 1
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/DB/create_database.py", "Python", 0, 0, 0, 55, 2, 14, 71
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/DB/models.py", "Python", 0, 0, 0, 15, 6, 8, 29
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/__init__.py", "Python", 0, 0, 0, 0, 0, 1, 1
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/bot/_init_.py", "Python", 0, 0, 0, 0, 0, 1, 1
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/bot/config.example.py", "Python", 0, 0, 0, 4, 15, 3, 22
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/bot/handlers/_init_.py", "Python", 0, 0, 0, 1, 0, 0, 1
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/bot/handlers/gifts.py", "Python", 0, 0, 0, 14, 1, 6, 21
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/bot/handlers/parse.py", "Python", 0, 0, 0, 213, 75, 39, 327
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/bot/handlers/start.py", "Python", 0, 0, 0, 83, 5, 23, 111
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/bot/main.py", "Python", 0, 0, 0, 42, 7, 15, 64
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/logging_config.py", "Python", 0, 0, 0, 28, 7, 12, 47
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/main.py", "Python", 0, 0, 0, 322, 104, 85, 511
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/parser/__init__.py", "Python", 0, 0, 0, 0, 0, 1, 1
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/parser/fragment.py", "Python", 0, 0, 0, 63, 7, 18, 88
+"/home/ame/Programming/python/project/Telegram-GIFTs/app/price_calculator.py", "Python", 0, 0, 0, 15, 9, 7, 31
+"/home/ame/Programming/python/project/Telegram-GIFTs/docs/LOGGING.md", "Markdown", 0, 18, 0, 0, 0, 9, 27
+"/home/ame/Programming/python/project/Telegram-GIFTs/requirements.txt", "pip requirements", 0, 0, 39, 0, 0, 1, 40
+"/home/ame/Programming/python/project/Telegram-GIFTs/setup.cfg", "Properties", 9, 0, 0, 0, 0, 2, 11
+"Total", "-", 9, 77, 39, 855, 238, 273, 1491
