@@ -1,6 +1,6 @@
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram.types import Message, FSInputFile, BufferedInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 import asyncio
@@ -10,8 +10,11 @@ import aiohttp
 import re
 from urllib.parse import quote
 from urllib.parse import quote
+import tempfile
+import os
 
 from app.bot.config import Config
+config = Config()
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +95,7 @@ def normalize_name(name: str) -> str:
 
 class GiftForm(StatesGroup):
     waiting_for_name = State()
+    waiting_for_names = State()
 
 @user_router.message(Command("gift_name"))
 async def gift_name_handler(message: Message, state: FSMContext):
@@ -210,9 +214,6 @@ Note:
     await message.answer(response, parse_mode="HTML")
     await state.clear()
 
-class GiftForm(StatesGroup):
-    waiting_for_names = State()
-
 @user_router.message(Command("put_gift"))
 async def put_gift_handler(message: Message, state: FSMContext) -> None:
     await message.answer(
@@ -313,6 +314,13 @@ async def process_put_gift(message: Message, state: FSMContext) -> None:
         return
 
     # Форматируем ответ
+    gift_id = updated_gift.get('id')
+    name = updated_gift.get('name', '')
+    
+    # Формируем ссылку t.me/nft/plushpepe-2790
+    normalized = normalize_name(name)
+    nft_link = f"https://t.me/nft/{normalized}-{gift_id}" if normalized and gift_id else ""
+    
     response = (
         f"✅ Гифт успешно обновлён!\n\n"
         f"📝 <b>Новые данные:</b>\n"
@@ -320,8 +328,46 @@ async def process_put_gift(message: Message, state: FSMContext) -> None:
         f"• Модель: {updated_gift.get('model')}\n"
         f"• Фон: {updated_gift.get('backdrop')}\n"
         f"• Символ: {updated_gift.get('symbol')}\n"
-        f"• Цена: {updated_gift.get('sale_price')}"
+        f"• Цена: {updated_gift.get('sale_price')}\n\n"
+        f"🔗 {nft_link}" if nft_link else ""
     )
     
     await message.answer(response, parse_mode="HTML")
     await state.clear()
+    
+    
+@user_router.message(Command("download"))
+async def download_handler(message: Message):
+    """
+    Скачивает файл базы данных с сервера и отправляет пользователю.
+    """
+    await message.answer("📥 Загружаю базу данных...")
+    
+    try:
+        async with aiohttp.ClientSession() as sess:
+            async with sess.get(f"{config.API_URL}/db/download") as resp:
+                resp.raise_for_status()
+                
+                # Читаем содержимое файла
+                db_content = await resp.read()
+                
+                # Получаем имя файла из заголовков или используем дефолтное
+                content_disposition = resp.headers.get('Content-Disposition', '')
+                if 'filename=' in content_disposition:
+                    filename = content_disposition.split('filename=')[1].strip('"')
+                else:
+                    filename = "gifts.db"
+                
+                # Отправляем файл пользователю напрямую из памяти
+                db_file = BufferedInputFile(db_content, filename=filename)
+                await message.answer_document(
+                    db_file,
+                    caption=f"✅ База данных ({len(db_content) // 1024} KB)"
+                )
+                
+    except aiohttp.ClientResponseError as e:
+        logger.exception("Ошибка при скачивании БД: %s", e)
+        await message.answer(f"❌ Ошибка при скачивании: HTTP {e.status}")
+    except Exception as e:
+        logger.exception("Неожиданная ошибка при скачивании БД: %s", e)
+        await message.answer("❌ Не удалось скачать базу данных. Проверьте, что API сервер запущен.")

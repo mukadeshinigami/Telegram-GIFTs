@@ -1,0 +1,56 @@
+Date : 2025-11-02 20:32:38
+Directory : /home/ame/Programming/python/project/Telegram-GIFTs
+Total : 20 files,  980 codes, 238 comments, 273 blanks, all 1491 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| Python           |         16 |        855 |        238 |        234 |      1,327 |
+| Markdown         |          2 |         77 |          0 |         36 |        113 |
+| pip requirements |          1 |         39 |          0 |          1 |         40 |
+| Properties       |          1 |          9 |          0 |          2 |         11 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++--------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                           | files      | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                              |         20 |        980 |        238 |        273 |      1,491 |
+| . (Files)                                                                      |          3 |        107 |          0 |         30 |        137 |
+| app                                                                            |         16 |        855 |        238 |        234 |      1,327 |
+| app (Files)                                                                    |          4 |        365 |        120 |        105 |        590 |
+| app/DB                                                                         |          3 |         70 |          8 |         23 |        101 |
+| app/bot                                                                        |          7 |        357 |        103 |         87 |        547 |
+| app/bot (Files)                                                                |          3 |         46 |         22 |         19 |         87 |
+| app/bot/handlers                                                               |          4 |        311 |         81 |         68 |        460 |
+| app/parser                                                                     |          2 |         63 |          7 |         19 |         89 |
+| docs                                                                           |          1 |         18 |          0 |          9 |         27 |
++--------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++--------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                                                       | language         | code       | comment    | blank      | total      |
++--------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| /home/ame/Programming/python/project/Telegram-GIFTs/README.md                  | Markdown         |         59 |          0 |         27 |         86 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/DB/__init__.py         | Python           |          0 |          0 |          1 |          1 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/DB/create_database.py  | Python           |         55 |          2 |         14 |         71 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/DB/models.py           | Python           |         15 |          6 |          8 |         29 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/__init__.py            | Python           |          0 |          0 |          1 |          1 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/bot/_init_.py          | Python           |          0 |          0 |          1 |          1 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/bot/config.example.py  | Python           |          4 |         15 |          3 |         22 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/bot/handlers/_init_.py | Python           |          1 |          0 |          0 |          1 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/bot/handlers/gifts.py  | Python           |         14 |          1 |          6 |         21 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/bot/handlers/parse.py  | Python           |        213 |         75 |         39 |        327 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/bot/handlers/start.py  | Python           |         83 |          5 |         23 |        111 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/bot/main.py            | Python           |         42 |          7 |         15 |         64 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/logging_config.py      | Python           |         28 |          7 |         12 |         47 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/main.py                | Python           |        322 |        104 |         85 |        511 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/parser/__init__.py     | Python           |          0 |          0 |          1 |          1 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/parser/fragment.py     | Python           |         63 |          7 |         18 |         88 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/app/price_calculator.py    | Python           |         15 |          9 |          7 |         31 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/docs/LOGGING.md            | Markdown         |         18 |          0 |          9 |         27 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/requirements.txt           | pip requirements |         39 |          0 |          1 |         40 |
+| /home/ame/Programming/python/project/Telegram-GIFTs/setup.cfg                  | Properties       |          9 |          0 |          2 |         11 |
+| Total                                                                          |                  |        980 |        238 |        273 |      1,491 |
++--------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
