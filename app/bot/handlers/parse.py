@@ -339,6 +339,25 @@ async def process_put_gift(message: Message, state: FSMContext) -> None:
 @user_router.message(Command("download"))
 async def download_handler(message: Message):
     """
+    Downloads database file from server and sends it to user.
+    This handler fetches a database file from the configured API endpoint and
+    sends it as a document to the user who requested it. The file is streamed
+    directly from the server response into memory and then sent to Telegram
+    without saving to disk.
+    Args:
+        message (Message): Telegram message object containing the user's request
+    Returns:
+        None: Function sends response directly to user via message.answer methods
+    Raises:
+        aiohttp.ClientResponseError: When HTTP request fails (non-2xx status)
+        Exception: For any other unexpected errors during download/send process
+    Note:
+        - Uses aiohttp for async HTTP requests to API server
+        - Extracts filename from Content-Disposition header if available
+        - Falls back to "gifts.db" as default filename
+        - Shows file size in KB in the caption
+        - Handles errors gracefully with user-friendly messages
+    
     Скачивает файл базы данных с сервера и отправляет пользователю.
     """
     await message.answer("📥 Загружаю базу данных...")
