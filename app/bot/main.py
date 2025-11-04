@@ -48,8 +48,17 @@ async def set_bot_commands(bot: Bot):
         BotCommand(command="gift_name", description="🔍 Найти гифт по названию"),
         BotCommand(command="get_all_gifts", description="📋 Получить все гифты"),
         BotCommand(command="health", description="💊 Проверить статус API"),
+        BotCommand(command="download", description="Скачать БД"),
     ]
-    await bot.set_my_commands(commands)
+
+    try:
+        # Устанавливаем команды и затем проверяем, что они действительно установились
+        await bot.set_my_commands(commands)
+        current = await bot.get_my_commands()
+        logging.getLogger(__name__).info("Bot commands set: %s", current)
+    except Exception as e:
+        # Логируем ошибку, но не мешаем запуску бота
+        logging.getLogger(__name__).exception("Failed to set bot commands: %s", e)
 
     
 async def main() -> None:
