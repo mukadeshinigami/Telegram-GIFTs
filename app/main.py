@@ -26,9 +26,9 @@ from app.logging_config import get_logger, new_error_id
 
 logger = get_logger(__name__)
 
-DB_PATH = (
-    "/home/ame/Programming/python/project/Telegram-GIFTs/gifts.db"
-)
+# Get the directory where this file is located
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(BASE_DIR, "gifts.db")
 
 config = Config()
 
@@ -503,9 +503,9 @@ async def get_gifts():
 
 if __name__ == "__main__":
     uvicorn.run(
-        "main:app",
+        "app.main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,
+        reload=False,
         log_level="info"
     )

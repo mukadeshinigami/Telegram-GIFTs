@@ -39,11 +39,19 @@ def start_database(
     
     with connect_db() as session:
         
-        exiting_gift = session.query(Gift).filter_by(name=name).first()
-        if exiting_gift:
-            logger.warning("Gift с именем %s уже существует.", name)
-            return 
+        # Проверяем существование гифта по ID (первичный ключ)
+        existing_gift = session.query(Gift).filter_by(id=id).first()
+        if existing_gift:
+            # Обновляем существующий гифт
+            existing_gift.name = name
+            existing_gift.model = model
+            existing_gift.backdrop = backdrop
+            existing_gift.symbol = symbol
+            existing_gift.sale_price = sale_price
+            logger.info("Обновлен существующий Gift #%s: %s", id, name)
+            return
         
+        # Создаем новый гифт, если его еще нет
         new_gift = Gift(
             id=id,
             name=name,
@@ -56,7 +64,7 @@ def start_database(
             date_added=datetime.now()  
         )
         session.add(new_gift)
-    logger.info("Добавлен новый Gift: %s", name)
+        logger.info("Добавлен новый Gift #%s: %s", id, name)
 if __name__ == "__main__":
     
     create_database()       # Тестовый запуск
